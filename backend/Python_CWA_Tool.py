@@ -16,7 +16,7 @@ import plotly.express as px
 
 
 # === Load compound database ===
-compound_db = pd.read_csv("C:/Users/aditn/OneDrive/Desktop/Decon Research Dr. Simon/chemical-weba-app/backend/Database/combined_chemicals.csv")
+compound_db = pd.read_csv("C:/Users/aditn/OneDrive/Desktop/Decon Research Dr. Simon/chemical-web-app/backend/Database/combined_chemicals.csv")
 aeglCols = [col for col in compound_db.columns if "AEGL" in col or "henryConstant" in col]
 for col in aeglCols:
     compound_db[col] = pd.to_numeric(compound_db[col], errors="coerce") 
