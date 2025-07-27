@@ -19,7 +19,7 @@ function DropdownMenu() {
 
   return (
     <>
-      <label>Select chemical:</label>
+      <label>Select chemical: </label>
       <select value={selectedChemical} onChange={handleChange}>
         <option value="">-- Choose a chemical --</option>
         {compoundNames.map((name) => (
