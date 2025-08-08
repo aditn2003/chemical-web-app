@@ -8,15 +8,21 @@ import ipywidgets as widgets
 from IPython.display import display, clear_output
 import pubchempy as pcp
 import re
+import os
+import time
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 from scipy.optimize import newton
 import plotly.express as px
+import plotly.io as pio
+
 
 
 # === Load compound database ===
-compound_db = pd.read_csv("C:/Users/aditn/OneDrive/Desktop/Decon Research Dr. Simon/chemical-web-app/backend/Database/combined_chemicals.csv")
+compound_db = pd.read_csv("Database/combined_chemicals.csv")
 aeglCols = [col for col in compound_db.columns if "AEGL" in col or "henryConstant" in col]
 for col in aeglCols:
     compound_db[col] = pd.to_numeric(compound_db[col], errors="coerce") 
@@ -485,7 +491,7 @@ def analyzeAllCompounds(compoundData: list[dict], selectedTimes=None, verbose=Fa
 
     summaryTable.to_csv("aegl_results.csv", index=False)
 
-    print("\n✅ AEGL results saved as 'aegl_results.csv'.")
+    print("\n AEGL results saved as 'aegl_results.csv'.")
 
     return allResults
 
@@ -495,7 +501,9 @@ def analyzeAllCompounds(compoundData: list[dict], selectedTimes=None, verbose=Fa
 def build_compound(name):
     row = compound_db[compound_db["Name"].str.lower() == name.lower()]
     if not row.empty:
-        return row.iloc[0].to_dict()
+        compound = row.iloc[0].to_dict()
+        compound = {k: v for k, v in compound.items() if pd.notnull(v)}
+        return makeJsonSafe(compound)
     else:
         try:
             res = pcp.get_compounds(name, "Name")
@@ -504,14 +512,14 @@ def build_compound(name):
                 smiles = c.canonical_smiles
                 mol = safe_mol_from_smiles(smiles, name)
                 if mol:
-                    return {
+                    return makeJsonSafe({
                         "Name": name,
                         "MW": c.molecular_weight,
                         "logP": c.xlogp or 0.3,
                         "formula": c.molecular_formula,
                         "class": "Other",
                         "SMILES": smiles
-                    }
+})
         except:
             pass
     return None
@@ -579,6 +587,8 @@ def getCompoundAnalysis(name):
     krPrediction = predict_kr(compound)
     selectedTimes = ["8hr", "4hr", "60min", "30min", "10min"]
     aeglResults = analyzeAllAegls(compound, selectedTimes, verbose=False)
+    if not aeglResults:
+        print("No AEGL data available or analysis failed.")
 
     return makeJsonSafe({
     "compound": compound,
@@ -587,53 +597,134 @@ def getCompoundAnalysis(name):
     "aeglAnalysis": aeglResults
     })
 
+_global_scatter_cache = {
+    "json": None,
+    "last_modified": None
+}
 
+# Graph for all chemcial types and their k values
+def getGlobalScatterGraph():
 
+    global _global_scatter_cache
 
+    csv_path = "Database/combined_chemicals.csv"  
+
+    try:
+        last_modified = os.path.getmtime(csv_path)
+
+        if (_global_scatter_cache["json"] is not None
+            and _global_scatter_cache["last_modified"] == last_modified):
+            return _global_scatter_cache["json"]
+
+        rows = []
+        for _, row in compound_db.iterrows():
+            comp = row.to_dict()
+            pred = predict_kr(comp)
+            rows.append({
+                "Name": comp.get("Name", "Unknown"),
+                "Class": comp.get("class", "Other"),
+                "Predicted_kr": pred["predicted_kr"],
+            })
+
+        df = pd.DataFrame(rows)
+
+        fig = px.scatter(
+            df,
+            x="Class",
+            y="Predicted_kr",
+            color="Class",
+            hover_name="Name",
+            log_y=True,
+            title="Predicted kr by Compound Class (All Compounds)",
+            template="plotly_white"
+        )
+        fig.update_traces(marker=dict(opacity=0.7, line=dict(width=0.5, color='DarkSlateGrey')))
+        fig.update_layout(
+            height=500,
+            showlegend=False,
+            xaxis_title="Chemical Class",
+            yaxis_title="kr (M⁻¹·min⁻¹)"
+        )
+
+        graph_json = pio.to_json(fig)
+
+        _global_scatter_cache["json"] = graph_json
+        _global_scatter_cache["last_modified"] = last_modified
+
+        return graph_json
+
+    except Exception as e:
+        return pio.to_json(px.scatter(title=f"Error generating scatter: {e}"))
+
+# Function for the final combined result with k prediction and AEGL
 def generateCombinedSummaryCsv(
     krCsvPath="kr_predictions_135.csv",
     aeglCsvPath="aegl_results.csv",
-    masterCsvPath="cleaned_chemicals_data.csv",
+    masterCsvPath="Database/cleaned_chemicals_data.csv",
     outputCsvPath="combined_summary_per_compound.csv",
     verbose=False
 ):
-    kr_df = pd.read_csv('kr_predictions_135.csv')
-    aegl_df = pd.read_csv('aegl_results.csv')
-    master_df = pd.read_csv('C:/Users/aditn/OneDrive/Desktop/Decon Research Dr. Simon/Database/combined_chemicals.csv')
+    kr_df = pd.read_csv(krCsvPath)
+    aegl_df = pd.read_csv(aeglCsvPath)
+    master_df = pd.read_csv(masterCsvPath)
 
-    kr_df["Name"] = kr_df["Name"].str.strip().str.lower()
-    master_df["Name"] = master_df["Name"].str.strip().str.lower()
+    kr_df.columns = kr_df.columns.str.strip().str.lower()
+    aegl_df.columns = aegl_df.columns.str.strip().str.lower()
+    master_df.columns = master_df.columns.str.strip().str.lower()
 
+    if "name" not in master_df.columns:
+        raise ValueError(f"'Name' column not found in master CSV. Available: {list(master_df.columns)}")
 
-    kr_df = pd.merge(kr_df, master_df[['Name', 'CAS']], on='Name', how='left')
+    kr_df["name"] = kr_df["name"].astype(str).str.strip().str.lower()
+    master_df["name"] = master_df["name"].astype(str).str.strip().str.lower()
 
-    kr_df = kr_df.rename(columns={"Name": "Compound"})
+    kr_df = pd.merge(kr_df, master_df[["name", "cas"]], on="name", how="left")
+    kr_df = kr_df.rename(columns={"name": "Compound"})  # this is now lowercase strings
 
-    pivot_fields = [
-        "AEGL (mg/m³)",
-        "Lag Time (hr)",
-        "Time to Dose (hr)",
-        "Time to Dose (days)"
-    ]
+    pivot_fields = ["aegl (mg/m³)", "lag time (hr)", "time to dose (hr)", "time to dose (days)"]
     pivoted = []
     for field in pivot_fields:
-        p = aegl_df.pivot(index="Compound", columns="AEGL Type", values=field)
-        p.columns = [f"{col} - {field}" for col in p.columns]
-        pivoted.append(p)
-    aegl_wide = pd.concat(pivoted, axis=1).reset_index()
+        if field in aegl_df.columns:
+            p = aegl_df.pivot(index="compound", columns="aegl type", values=field)
+            p.columns = [f"{col} - {field}" for col in p.columns]
+            pivoted.append(p)
+    aegl_wide = pd.concat(pivoted, axis=1).reset_index() if pivoted else pd.DataFrame(columns=["compound"])
 
-    LogKow_df = aegl_df[['Compound', 'LogKow']].drop_duplicates().reset_index(drop=True)
-    aegl_summary = pd.merge(LogKow_df, aegl_wide, on="Compound")
+    logkow_df = aegl_df[["compound", "logkow"]].drop_duplicates().reset_index(drop=True)
+    aegl_summary = pd.merge(logkow_df, aegl_wide, on="compound", how="outer")
+
+    aegl_summary = aegl_summary.rename(columns={"compound": "Compound"})
+    aegl_summary["Compound"] = aegl_summary["Compound"].astype(str).str.strip().str.lower()
 
     final = pd.merge(kr_df, aegl_summary, on="Compound", how="outer")
-    final = final.fillna("-")
-    
+
+    final["Compound"] = final["Compound"].str.title()
+
+    final = final.fillna("undefined")
+
+    def is_aegl_col(c: str) -> bool:
+        cl = c.lower()
+        return ("aegl (" in cl or "lag time (hr)" in cl or
+                "time to dose (hr)" in cl or "time to dose (days)" in cl or "aegl " in cl)
+
+    priority = ["Compound", "cas", "Class", "MW", "LogP", "Predicted_kr",
+                "ReactiveGroups", "LeavingGroup", "Steric", "BaseScore", "LogKow"]
+    cols = list(final.columns)
+    first = [c for c in priority if c in cols]
+    non_aegl_rest = [c for c in cols if c not in first and not is_aegl_col(c)]
+    aegl_cols = [c for c in cols if is_aegl_col(c)]
+    final = final[first + non_aegl_rest + aegl_cols]
+
+    final["__key"] = final["Compound"].astype(str).str.strip().str.lower()
+    final = final.drop_duplicates(subset="__key", keep="first").drop(columns="__key")
+
     final.to_csv(outputCsvPath, index=False)
     if verbose:
-        print(f"✅ Combined summary saved to: {outputCsvPath}")
-
-    ################################ CAS STILL NOT WORKING HERE BUT WORKS FINE ON COLLAB ############################
+        print(f"Combined summary saved to: {outputCsvPath}")
     return final
+
+
+
 
 
 # === Interactive UI ===

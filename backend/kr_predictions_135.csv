@@ -1,0 +1,126 @@
+Name,Class,MW,LogP,ReactiveGroups,LeavingGroup,Steric,BaseScore,Predicted_kr
+"1,3-Bis(2-chloroethylthio)-n-propane",Blister agent,233.2,3.48,,Cl,Medium,0.4,0.00241595642052897
+1-Bromo-2-butanone,Riot control,151.0,0.6,Carbonyl,Br,Medium,0.001,0.005
+1-Chloroacetophenone,Riot control,154.6,1.93,Carbonyl,Cl,Medium,0.001,0.005
+"2,3,7,8-Tetrachlorodibenzodioxin",Blood agent,321.98,6.8,Phenol,Cl,High,0.001,4.179073787734306e-05
+2-Chloroethyl ethyl sulfide,Blister agent,124.63,2.16,,Cl,Low,0.4,0.01509600570510921
+2-Chloroethylchloromethylsulfide,Blister agent,110.6,1.66,,Cl,Low,0.4,0.024200424782103967
+2-chlorobenzilidene malononitrile,Riot control,188.62,2.76,Alkene,Cl,Medium,0.001,0.005
+3-quinuclidinyl benzilate,Psychomimetic,337.4,3.01,Carbonyl,Other,High,0.001,1e-05
+Acetone cyanohydrin,Blood agent,85.11,-0.03,,CN,Low,0.001,0.005
+Acrolein,Lung injurant,56.06,-0.01,"Alkene, Carbonyl",Other,Low,0.001,1e-05
+Adamsite,Vomiting agent,277.59,4.05,Amine,Cl,Medium,0.001,0.0012502146318435585
+Allyl isothiocyanate,Riot control,99.15,2.15,Alkene,S,Low,0.001,0.0007245082808327335
+Ammonia,Lung injurant,17.03,-1.38,,Other,Low,0.001,1e-05
+Arsine,Blood agent,77.95,-0.68,,Other,Low,0.001,1e-05
+Benactyzine,Psychomimetic,327.43,2.89,Carbonyl,Other,High,0.001,1e-05
+Benperidol,Psychomimetic,381.45,3.91,Carbonyl,F,High,0.001,0.00033381520203489923
+Bis(2-chloroethylthio) methane,Blister agent,205.16,3.29,,Cl,Medium,0.4,0.0030900128270483114
+Bis(2-chloroethylthioethyl) ether,Blister agent,263.2,2.71,,Cl,Medium,0.4,0.004914034240627419
+Bis(2-chloroethylthiomethyl) ether,Blister agent,235.2,1.73,,Cl,Medium,0.4,0.013847368880363654
+Bromine,Lung injurant,159.81,1.03,,Br,Medium,0.001,0.005
+Bromoacetone,Riot control,136.98,0.11,Carbonyl,Br,Low,0.001,0.005
+Bromobenzyl cyanide,Riot control,196.05,1.83,,Br,Medium,0.001,0.005
+Butyrophenone,Psychomimetic,148.21,2.77,Carbonyl,Other,Low,0.001,1e-05
+Cacodyl cyanide,Blood agent,131.01,0.85,,CN,Low,0.001,0.005
+Cadmium oxide,Lung injurant,128.41,-0.07,,Other,Low,0.001,1e-05
+Capsaicin,Riot control,305.42,4.0,"Alkene, Carbonyl, Phenol",Other,High,0.001,1e-05
+"Carbamic acid, (2-chloroethyl)nitroso-, methyl ester",Blister agent,166.57,1.47,Carbonyl,Cl,Medium,0.4,0.02060132186723795
+Carbon Monoxide,Blood agent,28.01,0.4,,Other,Low,0.001,1e-05
+Carfentanil,Psychomimetic,394.52,3.39,Carbonyl,Other,High,0.001,1e-05
+Chlorine,Lung injurant,70.91,0.85,,Cl,Low,0.001,0.005
+Chloroacetone,Riot control,92.53,0.02,Carbonyl,Cl,Low,0.001,0.005
+Chloromethyl chloroformate,Riot control,128.94,0.39,Carbonyl,Cl,Low,0.001,0.005
+Chloropicrin,Lung injurant,164.38,2.09,Nitro,Cl,Medium,0.001,0.005
+Chlorotrifluoride,Lung injurant,92.45,0.53,,F,Low,0.001,0.005
+Crotonaldehyde,Riot control,70.09,0.6,"Alkene, Carbonyl",Other,Low,0.001,1e-05
+Cyanobromide,Blood agent,105.92,-0.29,,Br,Low,0.001,0.005
+Cyanogen,Blood agent,52.04,0.07,,CN,Low,0.001,0.005
+Cyanogen chloride,Blood agent,61.47,-0.38,,Cl,Low,0.001,0.005
+Cyclosarin,Nerve agent,180.16,1.67,Organophosphorus,F,Medium,1.0,0.00820733331636139
+Desflurane,Psychomimetic,168.04,1.2,,F,Medium,0.001,0.005
+"Dibenz[b,f][1,4]oxazepine",Riot control,195.22,3.49,Phenol,Other,Medium,0.001,1e-05
+Diisopropyl fluorophosphate,Nerve agent,184.15,1.17,Phosphate ester,F,Medium,1.0,0.013424052511630208
+Diisopropylaminoethyl methyl thiolophosphonate,Nerve agent,239.32,1.52,Organophosphorus,S,Medium,1.0,0.0008471504005947868
+Dimethylheptylpyran,Psychomimetic,370.58,9.54,Phenol,Other,High,0.001,1e-05
+Dinitrogen tetroxide,Lung injurant,92.01,0.43,Nitro,Other,Low,0.001,1e-05
+Diphenylchloroarsine,Vomiting agent,264.59,4.52,,Cl,Medium,0.001,0.0008019694549400015
+Diphenylcyanoarsine,Vomiting agent,255.15,3.29,,CN,Medium,0.001,0.00027960151478681483
+Diphosgene,Lung injurant,197.83,1.49,Carbonyl,Cl,Medium,0.001,0.005
+Disulfur decafluoride,Lung injurant,254.1,3.06,,F,Medium,0.001,0.0017632312468485126
+Ditran,Psychomimetic,339.43,3.02,Carbonyl,Cl,High,0.001,0.0017683014518370369
+Enflurane,Psychomimetic,184.49,2.1,,F,Medium,0.001,0.005
+Ethyl bromoacetate,Lung injurant,167.0,1.12,Carbonyl,Br,Medium,0.001,0.005
+Ethyl iodoacetate,Riot control,214.0,1.62,Carbonyl,Other,Medium,0.001,1e-05
+Ethyldichloroarsine,Blister agent,174.89,2.34,,Cl,Medium,0.4,0.008488524920411968
+Etonitazene,Psychomimetic,396.49,5.11,"Nitro, Phenol",Other,High,0.001,1e-05
+Etorphine,Psychomimetic,411.55,2.79,Phenol,Other,High,0.001,1e-05
+Fluomine dust,Lung injurant,361.22,4.93,Phenol,F,High,0.001,0.00012534219443929108
+Fluorine,Lung injurant,38.0,0.22,,F,Low,0.001,0.005
+Glycolonitrile,Blood agent,57.05,-1.61,,CN,Low,0.001,0.0012544347754355478
+HCN,Blood agent,27.03,-0.25,,CN,Low,0.001,0.004602709229199966
+HN-1,Blister agent,170.08,1.4,,Cl,Medium,0.4,0.02194052189742513
+HN-2,Blister agent,156.05,0.91,,Cl,Medium,0.4,0.0368330390273233
+HN-3,Blister agent,204.5,1.65,,Cl,Medium,0.4,0.01595058079502929
+Halothane,Psychomimetic,197.38,2.3,,F,Medium,0.001,0.004223178575600873
+Hexamethylene diisocyanate,Riot control,168.2,3.2,Carbonyl,Other,Medium,0.001,1e-05
+Hydrogen chloride,Lung injurant,36.46,0.25,,Cl,Low,0.001,0.005
+Hydrogen sulfide,Blood agent,34.08,-1.38,,S,Low,0.001,0.0007539704614284582
+Iodoacetone,Riot control,183.98,0.52,Carbonyl,Other,Medium,0.001,1e-05
+Isoflurane,Psychomimetic,184.49,2.06,,F,Medium,0.001,0.005
+Ketene,Lung injurant,42.04,-0.52,"Alkene, Carbonyl",Other,Low,0.001,1e-05
+Lactonitrile,Blood agent,71.08,-0.94,,CN,Low,0.001,0.002521225500395978
+Lewisite,Blister agent,207.31,2.56,Alkene,Cl,Medium,0.4,0.006384513178686281
+Lysergic acid diethylamide,Psychomimetic,323.44,2.95,Carbonyl,Other,High,0.001,1e-05
+Mercuric Chloride,Lung injurant,271.5,-0.22,,Cl,Medium,0.001,0.005
+Methanesulfonyl fluoride,Nerve agent,98.1,0.55,,F,Low,1.0,0.035809850365284224
+Methyl bromide,Lung injurant,94.94,1.19,,Br,Low,0.001,0.005
+Methyl cyanoformate,Blood agent,85.06,-1.1,Carbonyl,CN,Low,0.001,0.0022093648874734876
+Methyl isocyanate,Lung injurant,57.05,0.79,Carbonyl,Other,Low,0.001,1e-05
+Methyl vinyl ketone,Lung injurant,70.09,0.41,"Alkene, Carbonyl",Other,Low,0.001,1e-05
+Methyldichloroarsine,Blister agent,160.86,1.85,,Cl,Medium,0.4,0.014250261280914795
+N-Ethyl-3-piperidyl benzilate,Psychomimetic,339.44,3.2,Carbonyl,Other,High,0.001,1e-05
+N-Methyl-3-piperidyl benzilate,Psychomimetic,325.41,2.71,Carbonyl,Other,High,0.001,1e-05
+Nitrogen dioxide,Lung injurant,46.01,-0.58,,Other,Low,0.001,1e-05
+Osmium tetroxide,Lung injurant,254.23,2.23,,Other,Medium,0.001,1e-05
+Pentazocine,Psychomimetic,285.43,4.64,"Alkene, Phenol",Other,Medium,0.001,1e-05
+Perchloromethyl mercaptan,Lung injurant,185.88,3.47,,Cl,Medium,0.001,0.0026824625700688567
+Perchloryl fluoride,Lung injurant,102.45,-3.22,,Other,Low,0.001,1e-05
+Perfluoroisobutene,Lung injurant,200.03,3.03,Alkene,F,Medium,0.001,0.002024429761189628
+Pethidine,Psychomimetic,247.34,2.72,Carbonyl,Other,Medium,0.001,1e-05
+Phenacyl bromide,Riot control,199.05,2.19,Carbonyl,Br,Medium,0.001,0.005
+Phencyclidine,Psychomimetic,243.4,4.69,,Other,Medium,0.001,1e-05
+Phenylcarbylamine chloride,Lung injurant,174.03,2.54,,Cl,Medium,0.001,0.005
+Phenyldichloroarsine,Blister agent,222.93,3.06,,Cl,Medium,0.4,0.003753299208204035
+Phosgene,Lung injurant,98.92,-0.71,Carbonyl,Cl,Low,0.001,0.005
+Phosgene oxime,Blister agent,113.93,0.73,,Cl,Low,0.4,0.06174606112277117
+Phosphine,Lung injurant,34.0,-0.27,,Other,Low,0.001,1e-05
+Phosphorous trifluoride,Blood agent,87.97,1.28,,F,Low,0.001,0.005
+"Phosphorus, elemental, white or yellow",Lung injurant,30.97,-0.27,,Other,Low,0.001,1e-05
+Procarbazine,Psychomimetic,221.3,0.06,"Carbonyl, Amine",Other,Medium,0.001,1e-05
+Psilocybin,Psychomimetic,284.25,1.0,"Phenol, Phosphate ester",Other,Medium,0.001,1e-05
+Salcomin,Lung injurant,325.23,4.53,Phenol,Other,High,0.001,1e-05
+Sarin,Nerve agent,140.09,0.3,Organophosphorus,F,Low,1.0,0.049991000809951405
+Seleninyl chloride,Blister agent,165.87,-0.15,,Cl,Medium,0.4,0.0423833349798979
+Selenium dioxide,Lung injurant,110.96,-0.77,,Other,Low,0.001,1e-05
+Sesquimustard,Blister agent,219.2,2.99,,Cl,Medium,0.4,0.004055586210793116
+Sevoflurane,Psychomimetic,200.06,1.75,,F,Medium,0.001,0.005
+Sodium monofluoroacetate,Blood agent,100.03,-3.78,Carbonyl,F,Low,0.001,0.00078042472007761
+Soman,Nerve agent,182.17,1.78,Organophosphorus,F,Medium,1.0,0.007322911988397841
+Stibine,Blood agent,124.78,0.73,,Other,Low,0.001,1e-05
+Sulfur Mustard,Blister agent,159.08,2.14,,Cl,Medium,0.4,0.010700979101015504
+Sulfuryl fluoride,Lung injurant,102.06,0.41,,F,Low,0.001,0.005
+Tabun,Nerve agent,162.13,0.38,Organophosphorus,CN,Medium,1.0,0.006182051343858407
+Tetranitromethane,Lung injurant,196.03,-2.05,Nitro,Other,Medium,0.001,1e-05
+Trichloronitrosomethane,Lung injurant,148.38,2.0,,Cl,Low,0.001,0.005
+Trifluoroacetyl chloride,Lung injurant,132.47,-0.06,Carbonyl,F,Low,0.001,0.005
+Trifluoronitrosomethane,Lung injurant,99.01,1.06,,F,Low,0.001,0.005
+Uranium hexafluoride,Lung injurant,352.02,0.21,,F,High,0.001,0.005
+Xylyl bromide,Riot control,185.06,3.43,,Br,Medium,0.001,0.005
+apomorphine,Psychomimetic,267.33,2.3,Phenol,Other,Medium,0.001,1e-05
+benzyl bromide,Riot control,171.04,2.92,,Br,Medium,0.001,0.005
+benzyl chloride,Riot control,126.59,2.3,,Cl,Low,0.001,0.005
+cadmium chloride,Lung injurant,183.32,-1.65,,Cl,Medium,0.001,0.005
+nitric oxide,Lung injurant,31.01,0.74,,Other,Low,0.001,1e-05
+sulfur dioxide,Lung injurant,64.06,-2.2,,S,Low,0.001,0.0003525925677824706
+thiophosgene,Riot control,114.98,-0.15,,Cl,Low,0.001,0.005
