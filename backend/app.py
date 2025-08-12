@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from Python_CWA_Tool import analyze_reactivity, predict_kr, analyzeAllCompounds, compoundList, getCompoundAnalysis, compound_db, getGlobalScatterGraph, generateCombinedSummaryCsv
 from flask_cors import CORS
+import traceback
 
 app = Flask(__name__)
 CORS(app)  # <-- this enables CORS for all routes
@@ -19,7 +20,6 @@ def handleAnalyze():
     result = getCompoundAnalysis(name)
     return jsonify(result)
 
-
 @app.route("/api/compoundNames", methods=["GET"])
 def getCompoundNames():
     
@@ -30,9 +30,6 @@ def getCompoundNames():
 def kr_scatter():
     graph_json = getGlobalScatterGraph()
     return jsonify({"graph": graph_json})
-
-
-import traceback
 
 @app.route("/api/combined-summary", methods=["GET"])
 def get_combined_summary():

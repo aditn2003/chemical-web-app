@@ -50,6 +50,15 @@ def safe_mol_from_smiles(smiles, Name="unknown"):
         return mol
     except:
         return None
+    
+CAS_RE = re.compile(r"^\d{2,7}-\d{2}-\d$")
+def extract_cas_from_synonyms(syns):
+    if not syns:
+        return None
+    for s in syns:
+        if CAS_RE.match(s):
+            return s
+    return None
 
 # === Enhanced reactivity analysis ===
 def analyze_reactivity(compound):
@@ -199,7 +208,7 @@ def analyzeSingleAegl(compound: dict, aeglLevel: int, timeStr: str, verbose=Fals
         return "NotAvailable"
 
     molecularWeight = compound["MW"]
-    logKow = compound["logP"]
+    logKow = compound["logKow"]
     henryConstant = compound["henryConstant"]
     vaporPressure = compound["vaporPressure"]
     waterSolubility = compound["solubility"] / 1000
@@ -498,31 +507,83 @@ def analyzeAllCompounds(compoundData: list[dict], selectedTimes=None, verbose=Fa
 
 
 # === Compound builder from DB or PubChem ===
+def _pubchem_compound_by_name_or_cas(name: str):
+    """Try PubChem in several ways to resolve a compound object."""
+    try:
+        # 1) direct name lookup
+        res = pcp.get_compounds(name, "name")
+        if res:
+            return res[0]
+    except Exception as e:
+        print(f"[PubChem] name lookup failed for '{name}': {e}")
+
+    # 2) CAS registry ID if it looks like a CAS
+    try:
+        if CAS_RE.match(name):
+            res = pcp.get_compounds(name, "registry_id")
+            if res:
+                return res[0]
+    except Exception as e:
+        print(f"[PubChem] registry_id lookup failed for '{name}': {e}")
+
+    # 3) Substances -> CID -> Compound
+    try:
+        subs = pcp.get_substances(name)
+        for s in subs or []:
+            if getattr(s, "cid", None):
+                return pcp.Compound(s.cid)
+    except Exception as e:
+        print(f"[PubChem] substances->cid fallback failed for '{name}': {e}")
+
+    return None
+
+
 def build_compound(name):
     row = compound_db[compound_db["Name"].str.lower() == name.lower()]
     if not row.empty:
         compound = row.iloc[0].to_dict()
         compound = {k: v for k, v in compound.items() if pd.notnull(v)}
+        if "logKow" not in compound and "logP" in compound:
+            compound["logKow"] = compound["logP"]
         return makeJsonSafe(compound)
-    else:
-        try:
-            res = pcp.get_compounds(name, "Name")
-            if res:
-                c = res[0]
-                smiles = c.canonical_smiles
-                mol = safe_mol_from_smiles(smiles, name)
-                if mol:
-                    return makeJsonSafe({
-                        "Name": name,
-                        "MW": c.molecular_weight,
-                        "logP": c.xlogp or 0.3,
-                        "formula": c.molecular_formula,
-                        "class": "Other",
-                        "SMILES": smiles
-})
-        except:
-            pass
+
+    c = _pubchem_compound_by_name_or_cas(name)
+    if c:
+        smiles = getattr(c, "canonical_smiles", None) or getattr(c, "isomeric_smiles", None)
+        cas = extract_cas_from_synonyms(getattr(c, "synonyms", []))
+
+        mol = safe_mol_from_smiles(smiles, name) if smiles else None
+
+        return makeJsonSafe({
+            "Name": name,
+            "CAS": cas,
+            "MW": getattr(c, "molecular_weight", None),
+            "logP": getattr(c, "xlogp", None) if getattr(c, "xlogp", None) is not None else 0.3,
+            "logKow": getattr(c, "xlogp", None) if getattr(c, "xlogp", None) is not None else 0.3,
+            "formula": getattr(c, "molecular_formula", None),
+            "class": "Other",
+            "SMILES": smiles,
+            "henryConstant": None,
+            "vaporPressure": None,
+            "solubility": None,
+        })
+
+    print(f"[PubChem] no result for '{name}'")
     return None
+
+def hasAeglSupport(compound: dict) -> tuple[bool, str]:
+    # must have at least one AEGL* key
+    has_any_aegl = any(k.startswith("AEGL") for k in compound.keys())
+
+    # phys-chem fields the AEGL solver uses
+    required_numeric = ["MW", "logKow", "henryConstant", "vaporPressure", "solubility"]
+    missing = [k for k in required_numeric if compound.get(k) in [None, "undefined", ""] or pd.isna(compound.get(k))]
+
+    if not has_any_aegl:
+        return (False, "No AEGL threshold values found for this compound.")
+    if missing:
+        return (False, f"Missing phys-chem parameters required for AEGL analysis: {', '.join(missing)}.")
+    return (True, "")
 
 # === Display analysis for one compound ===
 def quick_predict_exact(name):
@@ -585,17 +646,22 @@ def getCompoundAnalysis(name):
 
     reactivity = analyze_reactivity(compound)
     krPrediction = predict_kr(compound)
-    selectedTimes = ["8hr", "4hr", "60min", "30min", "10min"]
-    aeglResults = analyzeAllAegls(compound, selectedTimes, verbose=False)
-    if not aeglResults:
-        print("No AEGL data available or analysis failed.")
+
+    aegl_available, reason = hasAeglSupport(compound)
+    if aegl_available:
+        selectedTimes = ["8hr", "4hr", "60min", "30min", "10min"]
+        results = analyzeAllAegls(compound, selectedTimes, verbose=False)
+        aeglAnalysis = {"available": True, "results": results}
+    else:
+        aeglAnalysis = {"available": False, "reason": reason}
 
     return makeJsonSafe({
-    "compound": compound,
-    "reactivity": reactivity,
-    "krPrediction": krPrediction,
-    "aeglAnalysis": aeglResults
+        "compound": compound,
+        "reactivity": reactivity,
+        "krPrediction": krPrediction,
+        "aeglAnalysis": aeglAnalysis
     })
+
 
 _global_scatter_cache = {
     "json": None,
