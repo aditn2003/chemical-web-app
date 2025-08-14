@@ -1,0 +1,17 @@
+# Backend core
+flask
+flask-cors
+pandas
+numpy
+scipy
+ipython
+matplotlib
+
+
+# Plotting / graph JSON export
+plotly
+
+# Chemistry-related library (used in Python_CWA_Tool)
+pubchempy
+rdkit
+
