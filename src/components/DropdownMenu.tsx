@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import CompoundInfo from "./CoumpoundInfo.tsx";
+import CompoundInfo from "./CompoundInfo.tsx";
 import ReactivityInfo from "./ReactivityInfo";
 import AEGLButtons from "./AEGLButtons.tsx";
 import KrPredictionCard from "./KrPrediction.tsx";
@@ -10,7 +10,7 @@ function DropdownMenu() {
   const [compoundNames, setCompoundNames] = useState<string[]>([]);
   // current query text in the search bar
   const [query, setQuery] = useState("");
-  // selected (committed) chemical for analyze
+  // selected chemical for analyze
   const [selectedChemical, setSelectedChemical] = useState("");
   // analysis response
   const [analysisResult, setAnalysisResult] = useState<any | null>(null);
@@ -28,7 +28,7 @@ function DropdownMenu() {
       .catch((err) => console.error("Error fetching compound names:", err));
   }, []);
 
-  // suggestions (case-insensitive, top 8)
+  // top 8 suggestions that are case-insensitive
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
@@ -44,7 +44,6 @@ function DropdownMenu() {
     setAnalysisResult(null);
   };
 
-  // analyze handler (uses free-text if needed)
   const handleAnalyze = async () => {
     const name = (selectedChemical || query).trim();
     if (!name) return;
@@ -59,10 +58,8 @@ function DropdownMenu() {
       });
       const data = await response.json();
 
-      // guard: backend might return { error: "..." }
       if (!response.ok || (data && data.error)) {
         setAnalysisResult(null);
-        // show a non-blocking UI message instead of crashing a child component
         console.error(
           "Analyze error:",
           data?.error || `HTTP ${response.status}`
@@ -71,7 +68,6 @@ function DropdownMenu() {
         return;
       }
 
-      // also guard for missing compound
       if (!data.compound) {
         setAnalysisResult(null);
         alert("No compound details returned from server.");
@@ -86,7 +82,6 @@ function DropdownMenu() {
     }
   };
 
-  // keyboard support for the combobox
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       setShowSuggestions(true);
@@ -106,7 +101,6 @@ function DropdownMenu() {
       ) {
         choose(suggestions[highlighted]);
       } else {
-        // free-text analyze
         setSelectedChemical(query.trim());
         handleAnalyze();
       }
@@ -116,7 +110,6 @@ function DropdownMenu() {
     }
   };
 
-  // click outside to close suggestions
   useEffect(() => {
     const onDocClick = (ev: MouseEvent) => {
       const target = ev.target as Node;
@@ -159,7 +152,7 @@ function DropdownMenu() {
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            setSelectedChemical(""); // favor free-text until user picks suggestion
+            setSelectedChemical("");
             setShowSuggestions(true);
             setAnalysisResult(null);
           }}
@@ -217,7 +210,7 @@ function DropdownMenu() {
                 aria-selected={i === highlighted}
                 onMouseEnter={() => setHighlighted(i)}
                 onMouseDown={(e) => {
-                  e.preventDefault(); // prevent input blur before click
+                  e.preventDefault();
                   choose(name);
                 }}
                 style={{

@@ -1,3 +1,4 @@
+// App.tsx
 import AnalysisView from "./components/AnalysisView";
 
 function App() {
