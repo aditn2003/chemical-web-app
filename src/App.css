@@ -15,3 +15,118 @@
 .compound-info li {
   margin-bottom: 0.5rem;
 }
+
+.aegl-graph-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.aegl-graph-card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  height: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.switch-button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.switch-button:hover {
+  background-color: #e8e8e8;
+  transform: scale(1.02);
+}
+
+.mode-switch-button {
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 500;
+  background-color: #4b6cb7; /* Indigo-Blue gradient base */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  background-image: linear-gradient(to right, #182848, #4b6cb7);
+}
+
+.mode-switch-button:hover {
+  transform: scale(1.05);
+  background-image: linear-gradient(to right, #3e4a89, #7581db);
+}
+
+.mode-switch-button:active {
+  transform: scale(0.98);
+  background-image: linear-gradient(to right, #2c3e50, #485563);
+}
+
+/* === Top Bar Styles === */
+
+.topbar {
+  background-color: #ffffff;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.topbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.topbar-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #2b2b2b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.topbar-title::after {
+  content: "";
+  display: inline-block;
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  background-color: #4b6cb7;
+  margin-left: 8px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #222;
+}
