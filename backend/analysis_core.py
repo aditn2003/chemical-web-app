@@ -85,7 +85,7 @@ def analyze_reactivity(compound):
 def predict_kr(compound):
     reactivity = analyze_reactivity(compound)
     MW = float(compound.get("MW", 100))
-    logP = float(compound.get("logP", 0.3))
+    logP = float(compound.get("logP") or 0.3)
 
     baseKr = {
         "Cl": 0.1,
