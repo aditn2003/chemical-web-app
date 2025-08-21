@@ -49,7 +49,7 @@ def get_smiles_from_pubchem(name: str) -> str | None:
         except Exception:
             continue
 
-    # Try synonym search
+    # Synonym search
     try:
         cids = pcp.get_cids(name, 'synonym')
         if cids:
