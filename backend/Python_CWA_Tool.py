@@ -504,8 +504,6 @@ def analyzeAllCompounds(compoundData: list[dict], selectedTimes=None, verbose=Fa
 
     return allResults
 
-
-
 # === Compound builder from DB or PubChem ===
 def _pubchem_compound_by_name_or_cas(name: str):
     """Try PubChem in several ways to resolve a compound object."""

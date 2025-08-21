@@ -229,7 +229,6 @@ def analyzeSingleAegl(compound: dict, aeglLevel: int, timeStr: str, verbose=Fals
 
     tlag = h1 ** 2 / (6 * dsc)
     if verbose:
-        # print(f"DEBUG PARAMETERS for AEGL{aeglLevel} ({timeStr}):")
         print(f" AEGL = {aegl:.6f} mg/m³")
         print(f" Cv (skin concentration) = {cv:.4e} mg/mL")
         print(f" Qallow (allowable dose) = {qallow:.4e} mg")
@@ -313,25 +312,22 @@ def analyzeSingleAegl(compound: dict, aeglLevel: int, timeStr: str, verbose=Fals
         )
         absorptionGraphJson = pio.to_json(fig_abs)
 
-        # Flux (Flux vs time)
-       # Flux (Flux vs time) — styled to match purple shaded Matplotlib version
+    # Flux (Flux vs time)
         tAxisFlux = np.linspace(0, 10, 500)
         exactFlux = [fluxExact(tVal) for tVal in tAxisFlux]
         steadyFlux = [fluxSteadyState(tVal) for tVal in tAxisFlux]
 
         fig_flux = go.Figure()
 
-# Area under the curve: purple fill
         fig_flux.add_trace(go.Scatter(
             x=tAxisFlux, y=exactFlux,
             mode="lines",
             name="Exact flux",
             line=dict(color="purple", width=3),
             fill="tozeroy",
-            fillcolor="rgba(128,0,128,0.2)"  # semi-transparent purple
+            fillcolor="rgba(128,0,128,0.2)"
         ))
 
-    # Steady-state horizontal line
         fig_flux.add_trace(go.Scatter(
             x=tAxisFlux,
             y=steadyFlux,
@@ -340,7 +336,6 @@ def analyzeSingleAegl(compound: dict, aeglLevel: int, timeStr: str, verbose=Fals
             line=dict(color="green", width=3, dash="dash")
         ))
 
-    # Add vertical dashed line at tlag
         fig_flux.add_vline(
             x=tlag,
             line=dict(dash="dash", width=1.5, color="gray"),
@@ -431,7 +426,6 @@ def analyzeAllAegls(compound: dict, selectedTimes=None, verbose=False):
                 if result != "NotAvailable":
                     allResults.append(result)
 
-                    # logic always runs
                     tReach = result["tReach"]
                     expectedTime = result["qallow"] / result["steadyStateFlux"] + result["tlag"]
 
@@ -560,7 +554,7 @@ def quick_predict_exact(name):
 
 # ========================================= Backend Functions Start ==========================================
 
-# converts np.float64 -> float, etc.
+# converts np.float64 -> float
 def makeJsonSafe(obj):
     if isinstance(obj, dict):
         return {k: makeJsonSafe(v) for k, v in obj.items()}

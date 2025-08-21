@@ -1,6 +1,5 @@
 import pandas as pd
 
-# === Load compound database ===
 compound_db = pd.read_csv("Database/combined_chemicals.csv")
 
 aeglCols = [col for col in compound_db.columns if "AEGL" in col or "henryConstant" in col]
