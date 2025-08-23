@@ -13,6 +13,7 @@ function DropdownMenu() {
   const [highlighted, setHighlighted] = useState<number>(-1);
   const listRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [mode, setMode] = useState<"gaseous" | "aqueous">("gaseous");
 
   useEffect(() => {
     fetch("http://localhost:5000/api/compoundNames")
@@ -38,6 +39,11 @@ function DropdownMenu() {
   const handleAnalyze = async (overrideName?: string) => {
     const name = (overrideName || query).trim();
     if (!name) return;
+
+    if (mode === "aqueous") {
+      alert("Aqueous mode is not available yet.");
+      return;
+    }
 
     setIsAnalyzing(true);
     setAnalysisResult(null);
@@ -120,24 +126,43 @@ function DropdownMenu() {
 
   return (
     <div>
-      <label
-        htmlFor="chem-search"
-        style={{ display: "block", marginBottom: 6 }}
-      >
-        Search chemical:
-      </label>
-
-      {/* Input + Analyze button side by side */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "0.75rem",
+          gap: "1rem",
           flexWrap: "wrap",
-          marginBottom: "1rem",
-          maxWidth: "100%",
+          marginBottom: "1.25rem",
         }}
       >
+        {/* Mode dropdown */}
+        <label style={{ fontSize: 14, whiteSpace: "nowrap" }}>
+          Select Mode:
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value as "gaseous" | "aqueous")}
+            style={{
+              marginLeft: 8,
+              padding: "6px 12px",
+              borderRadius: 6,
+              border: "1px solid #ccc",
+              fontSize: 14,
+            }}
+          >
+            <option value="gaseous">Gaseous</option>
+            <option value="aqueous">Aqueous</option>
+          </select>
+        </label>
+
+        {/* Search label */}
+        <label
+          htmlFor="chem-search"
+          style={{ fontSize: 14, whiteSpace: "nowrap" }}
+        >
+          Search chemical:
+        </label>
+
+        {/* Search input */}
         <div
           role="combobox"
           aria-expanded={showSuggestions}
@@ -231,6 +256,7 @@ function DropdownMenu() {
           )}
         </div>
 
+        {/* Analyze button */}
         <button
           onClick={() => handleAnalyze()}
           disabled={isAnalyzing || !query.trim()}
@@ -249,7 +275,7 @@ function DropdownMenu() {
         </button>
       </div>
 
-      {/* Side-by-side cards */}
+      {/* Result Display */}
       {analysisResult?.compound && (
         <>
           <div
@@ -269,7 +295,6 @@ function DropdownMenu() {
             )}
           </div>
 
-          {/* AEGL section below */}
           <div style={{ marginTop: "1.5rem" }}>
             {analysisResult.aeglAnalysis?.available ? (
               <AEGLButtons aeglAnalysis={analysisResult.aeglAnalysis.results} />
