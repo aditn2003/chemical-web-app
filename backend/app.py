@@ -7,6 +7,9 @@ from data_loader import compound_db, compoundList
 from analysis_core import analyze_reactivity, predict_kr, analyzeAllAegls, makeJsonSafe, generateCombinedSummaryCsv, analyzeSingleAegl
 from flask_cors import CORS
 import traceback
+from aqueous_code import run as run_aqueous_model
+import plotly.io as pio
+
 
 app = Flask(__name__)
 CORS(app)  # <-- this enables CORS for all routes
@@ -43,16 +46,54 @@ def getCompoundAnalysis(name):
 
 
 @app.route("/api/analyze", methods=["POST"])
-def handleAnalyze():
-    data = request.get_json()
-    name = data.get('name') if data else None
-    print("Received request with name:", name)
+def analyze():
+    try:
+        data = request.get_json()
+        if not data or "name" not in data:
+            return jsonify({"error": "Missing compound name"}), 400
 
-    if not name:
-        return jsonify({"error": "No compound name provided"}), 400
+        name = data["name"]
+        mode = data.get("mode", "gaseous").lower()
 
-    result = getCompoundAnalysis(name)
-    return jsonify(result)
+        # Gaseous mode = default behavior
+        if mode == "gaseous":
+            result = getCompoundAnalysis(name)
+            return jsonify(result)
+
+        # Aqueous mode = use alternative AEGL dermal analysis
+        elif mode == "aqueous":
+            try:
+                output = run_aqueous_model(name)
+                result = getCompoundAnalysis(name)
+
+        # add the 4 overview graphs from aqueous_code.py
+                result["aeglGraphs"] = {
+            "vaporAbsorption": output.get("vaporAbsorption"),
+            "liquidAbsorption": output.get("liquidAbsorption"),
+            "vaporFlux": output.get("vaporFlux"),
+            "liquidFlux": output.get("liquidFlux"),
+                }
+
+        # 👇 DO NOT overwrite the entire aeglAnalysis object.
+        # If it exists, just tag the source; otherwise, create a minimal one.
+                if isinstance(result.get("aeglAnalysis"), dict):
+                    result["aeglAnalysis"]["source"] = "aqueous_model"
+                else:
+                    result["aeglAnalysis"] = {"available": True, "source": "aqueous_model"}
+
+                return jsonify(result)
+
+
+            except Exception as e:
+                return jsonify({"error": f"Aqueous model error: {str(e)}"}), 500
+
+        else:
+            return jsonify({"error": f"Unsupported mode '{mode}'"}), 400
+
+    except Exception as e:
+        return jsonify({"error": f"Internal error: {str(e)}"}), 500
+
+
 
 @app.route("/api/compoundNames", methods=["GET"])
 def getCompoundNames():

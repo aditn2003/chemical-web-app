@@ -3,6 +3,7 @@ import CompoundInfo from "./CompoundInfo.tsx";
 import ReactivityInfo from "./ReactivityInfo";
 import AEGLButtons from "./AEGLButtons.tsx";
 import KrPredictionCard from "./KrPrediction.tsx";
+import Plot from "react-plotly.js";
 
 function DropdownMenu() {
   const [compoundNames, setCompoundNames] = useState<string[]>([]);
@@ -40,11 +41,6 @@ function DropdownMenu() {
     const name = (overrideName || query).trim();
     if (!name) return;
 
-    if (mode === "aqueous") {
-      alert("Aqueous mode is not available yet.");
-      return;
-    }
-
     setIsAnalyzing(true);
     setAnalysisResult(null);
 
@@ -52,7 +48,7 @@ function DropdownMenu() {
       const response = await fetch("http://localhost:5000/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, mode }),
       });
 
       const data = await response.json();
@@ -275,7 +271,7 @@ function DropdownMenu() {
         </button>
       </div>
 
-      {/* Result Display */}
+      {/* Analysis results */}
       {analysisResult?.compound && (
         <>
           <div
@@ -295,8 +291,40 @@ function DropdownMenu() {
             )}
           </div>
 
+          {/* AEGL Visualization */}
           <div style={{ marginTop: "1.5rem" }}>
-            {analysisResult.aeglAnalysis?.available ? (
+            {mode === "aqueous" && analysisResult.aeglGraphs ? (
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                }}
+              >
+                {[
+                  "vaporAbsorption",
+                  "liquidAbsorption",
+                  "vaporFlux",
+                  "liquidFlux",
+                ].map(
+                  (key) =>
+                    analysisResult.aeglGraphs[key] && (
+                      <div
+                        key={key}
+                        style={{ flex: "1 1 450px", minWidth: 300 }}
+                      >
+                        <Plot
+                          data={JSON.parse(analysisResult.aeglGraphs[key]).data}
+                          layout={
+                            JSON.parse(analysisResult.aeglGraphs[key]).layout
+                          }
+                        />
+                      </div>
+                    )
+                )}
+              </div>
+            ) : analysisResult.aeglAnalysis?.available ? (
               <AEGLButtons aeglAnalysis={analysisResult.aeglAnalysis.results} />
             ) : (
               <div
