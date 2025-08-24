@@ -10,6 +10,7 @@ from scipy import optimize
 import plotly.graph_objects as go
 import plotly.io as pio
 import os
+import json
 
 # Import your loader (unchanged)
 from data_loader import compound_db, nameToCompound
@@ -255,6 +256,29 @@ def makePlotlyFigures(chemName, aeglTier, duration, qAllow, tLag, tReach, tReach
         "vaporFlux": fig3.to_json(),
         "liquidFlux": fig4.to_json()
     }
+
+def run_aqueous_model(name):
+    
+    all_figs = {}
+    durations = ["8hr", "4hr", "60min", "30min", "10min"]
+    tiers = [1, 2, 3]
+
+    for tier in tiers:
+        for dur in durations:
+            try:
+                figs = run(name=name, aeglTier=tier, duration=dur)
+                all_figs[f"AEGL{tier}_{dur}"] = figs
+            except Exception as e:
+                print(f"[SKIP] AEGL{tier}_{dur}: {e}")
+                continue
+
+    # Return flat dict with keys like AEGL1_8hr_vaporAbsorption
+    merged = {}
+    for key, figset in all_figs.items():
+        for figName, figJson in figset.items():
+            merged[f"{key}_{figName}"] = figJson
+
+    return merged
 
 # ---------------------- main runner (uses loader DB) ----------------------
 def run(name=None, cas=None, aeglTier=1, duration="8hr", bodyWeightKg=70.0, exposedFraction=0.10, outdir=None):
