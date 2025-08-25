@@ -54,34 +54,24 @@ def analyze():
         name = str(data["name"]).strip()
         mode = str(data.get("mode", "gaseous")).lower()
 
-        # ---- Default path (unchanged): gaseous analysis
         if mode == "gaseous":
             result = getCompoundAnalysis(name)
             return jsonify(result)
 
-        # ---- Aqueous path: compute *all* AEGL targets, return all figures
         elif mode == "aqueous":
             try:
-                # 1) Run the new all-targets function
-                #    Returns a flat dict like:
-                #    "AEGL1_8hr_vaporAbsorption": "<plotly-json>", etc.
                 all_figs = run_all_aegl(name=name)
 
-                # 2) Start from the standard analysis payload
                 result = getCompoundAnalysis(name)
 
-                # 3) Attach the full grid for your frontend (60+ plots if available)
                 result["aeglGraphGrid"] = all_figs
 
-                # 4) Build a 4-figure "overview" by auto-picking the first available AEGL target
-                #    Order preference: Tier 1..3, then 8hr, 4hr, 60min, 30min, 10min
                 duration_order = ["8hr", "4hr", "60min", "30min", "10min"]
                 overview = {"vaporAbsorption": None,
                             "liquidAbsorption": None,
                             "vaporFlux": None,
                             "liquidFlux": None}
 
-                # Find the first (tier, duration) combo present in all_figs
                 chosen_key_prefix = None
                 for tier in (1, 2, 3):
                     for dur in duration_order:
@@ -103,10 +93,8 @@ def analyze():
                         "vaporFlux":       all_figs[f"{chosen_key_prefix}vaporFlux"],
                         "liquidFlux":      all_figs[f"{chosen_key_prefix}liquidFlux"],
                     }
-                # Attach the overview (may contain None if nothing was found)
                 result["aeglGraphs"] = overview
 
-                # 5) Tag the analysis source without clobbering existing structure
                 if isinstance(result.get("aeglAnalysis"), dict):
                     result["aeglAnalysis"]["source"] = "aqueous_model"
                     result["aeglAnalysis"]["available"] = True

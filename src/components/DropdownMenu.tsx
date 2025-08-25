@@ -19,7 +19,6 @@ type AeglGridGrouped = {
   sortedKeys: string[];
 };
 
-/** Safely parse a Plotly JSON string coming from the backend. */
 function parsePlotlyJSON(raw: unknown): { data: any[]; layout: any } | null {
   if (raw == null) return null;
   try {
@@ -47,11 +46,10 @@ function groupAeglGrid(
 
   if (grid && typeof grid === "object") {
     Object.entries(grid).forEach(([k, v]) => {
-      // Expect keys like "AEGL1_8hr_vaporAbsorption"
       const lastUnderscore = k.lastIndexOf("_");
       if (lastUnderscore <= 0) return;
-      const prefix = k.slice(0, lastUnderscore); // "AEGL1_8hr"
-      const figName = k.slice(lastUnderscore + 1); // "vaporAbsorption"
+      const prefix = k.slice(0, lastUnderscore);
+      const figName = k.slice(lastUnderscore + 1);
       if (!FIG_KEYS.includes(figName as any)) return;
 
       if (!groups[prefix]) groups[prefix] = {};
@@ -59,7 +57,6 @@ function groupAeglGrid(
     });
   }
 
-  // stable sort: Tier asc, then duration order
   const orderDur: Record<string, number> = {
     "8hr": 0,
     "4hr": 1,
@@ -196,7 +193,6 @@ function DropdownMenu() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // Build grouped AEGL sections when in aqueous mode (typed)
   const grouped: AeglGridGrouped | null = useMemo(() => {
     if (mode !== "aqueous" || !analysisResult?.aeglGraphGrid) return null;
     return groupAeglGrid(
@@ -206,7 +202,6 @@ function DropdownMenu() {
 
   const [activeAegl, setActiveAegl] = useState<string | null>(null);
 
-  // whenever a new grouped grid arrives, pick the first target by default
   useEffect(() => {
     if (grouped && grouped.sortedKeys.length > 0) {
       setActiveAegl((prev) =>
@@ -392,7 +387,6 @@ function DropdownMenu() {
           <div style={{ marginTop: "1.5rem" }}>
             {mode === "aqueous" ? (
               <>
-                {/* Full AEGL grid (all targets available) — compact chip selector */}
                 {grouped && grouped.sortedKeys.length > 0 ? (
                   <div style={{ display: "grid", gap: "0.75rem" }}>
                     {/* Chip row */}
@@ -430,7 +424,6 @@ function DropdownMenu() {
                     </div>
 
                     {/* Active target panel */}
-                    {/* Active target panel */}
                     {activeAegl
                       ? (() => {
                           const g = grouped.groups[activeAegl!];
@@ -459,18 +452,15 @@ function DropdownMenu() {
                               </div>
                             );
                           }
-
-                          // Compact layout with legend BELOW the chart (not clipped)
                           const withLegendBelow = (lay: any) => ({
                             ...lay,
                             autosize: true,
-                            // add extra bottom margin to fit legend fully
                             margin: { t: 30, r: 20, b: 72, l: 48 },
                             legend: {
                               orientation: "h",
                               x: 0.5,
                               xanchor: "center",
-                              y: -0.15, // below plotting area
+                              y: -0.15,
                               yanchor: "top",
                               font: { size: 12 },
                               bgcolor: "rgba(255,255,255,0.75)",
@@ -513,7 +503,7 @@ function DropdownMenu() {
                                 display: "grid",
                                 gridTemplateColumns:
                                   "repeat(2, minmax(0, 1fr))",
-                                gridAutoRows: "380px", // match cell height
+                                gridAutoRows: "380px",
                                 gap: "0.75rem",
                                 paddingTop: "0.5rem",
                                 alignItems: "stretch",

@@ -10,11 +10,7 @@ import os
 from data_loader import compound_db, nameToCompound
 
 def pickAegl(rowDict, aeglTier, duration):
-    """
-    rowDict is a dict-like (from your DataFrame row).
-    Expects columns like AEGL1_8hr, AEGL2_60min, etc.
-    Returns mg/m^3 (float).
-    """
+    
     col = f"AEGL{aeglTier}_{duration}"
     if col not in rowDict:
         raise ValueError(f"AEGL column '{col}' not found in row.")
@@ -40,10 +36,7 @@ def getCompoundByCas(cas):
 AEGL_COL_RE = re.compile(r"^AEGL([123])_(8hr|4hr|60min|30min|10min)$")
 
 def list_available_aegl_targets(rowDict):
-    """
-    Scan the row (dict-like) and return all (tier:int, duration:str) pairs
-    for which AEGL{tier}_{duration} exists and is not NaN.
-    """
+   
     targets = []
     for key, val in rowDict.items():
         m = AEGL_COL_RE.match(str(key))
@@ -59,15 +52,7 @@ def list_available_aegl_targets(rowDict):
     return targets
 
 def initParamsFromRow(row, aeglMgPerM3, bodyWeightKg=70.0, exposedFraction=0.10):
-    """
-    Build model parameters using the row (dict) from your DB and the chosen AEGL (mg/m^3).
-    Units assumed:
-      - MW: g/mol
-      - logP: unitless (treated as logKow)
-      - henryConstant: atm·m^3/mol (optional)
-      - solubility: mg/L (optional)
-      - vaporPressure: Pa (optional)
-    """
+   
     mw = float(row["MW"])
     logKow = float(row["logP"])
     kow = 10 ** logKow
@@ -187,13 +172,11 @@ def makePlotlyFigures(chemName, aeglTier, duration, qAllow, tLag, tReach, tReach
     import numpy as np
     import plotly.graph_objects as go
 
-    # Time vectors
     t1 = np.linspace(0.0, max(tReach * 1.1, 1e-9), 500)
     t2 = np.linspace(0.0, max(tReachL * 1.2, 1e-9), 500)
     t3 = np.linspace(0.0, 10.0, 500)
     t4 = t3
 
-    # Compute data
     q1Exact = [q2VaporExact(t, p["dsc"], p["hsc"], p["cv"], p["a1"], p["kscg"], p["nUp"]) for t in t1]
     q1Steady = [q2VaporSteady(t, p["dsc"], p["hsc"], p["cv"], p["a1"], p["kscg"]) for t in t1]
     q2ExactVals = [q2LiquidExact(t, p["dsc"], p["hsc"], p["cv"], p["a1"], p["kscw"], p["nUp"]) for t in t2]
@@ -203,7 +186,6 @@ def makePlotlyFigures(chemName, aeglTier, duration, qAllow, tLag, tReach, tReach
     f4Exact = [fluxLiquidExact(t, p["dsc"], p["hsc"], p["cv"], p["a1"], p["kscw"], p["nUp"]) for t in t4]
     f4Steady = [fluxLiquidSteady(t, tLag, p["dsc"], p["hsc"], p["cv"], p["a1"], p["kscw"]) for t in t4]
 
-    # Shared styles
     legend_style = dict(
         orientation="h",
         x=0.5,
@@ -328,10 +310,7 @@ def _run_single_from_row(row, aeglTier, duration, bodyWeightKg, exposedFraction)
     return figs
 
 def run_all_aegl(name=None, cas=None, bodyWeightKg=70.0, exposedFraction=0.10, outdir=None):
-    """
-    Compute plots for *all available* AEGL targets on the matched chemical row.
-    Returns a flat dict:  AEGL{tier}_{duration}_{figureName} → "<plotly-json>"
-    """
+
     if not name and not cas:
         raise ValueError("Provide either --name or --cas.")
     row = getCompoundByName(name) if name else getCompoundByCas(cas)
@@ -383,7 +362,7 @@ if __name__ == "__main__":
         )
     else:
         if args.aeglTier is None or args.duration is None:
-            raise SystemExit("When not using --all, you must pass --aeglTier and --duration.")
+            raise SystemExit("AEGL Tier and Time not mentioned")
         _ = run(
             name=args.name,
             cas=args.cas,
