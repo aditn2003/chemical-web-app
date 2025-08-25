@@ -9,16 +9,13 @@ type AeglRow = {
   timeStr: string;
   aegl?: number | string | null;
   tReach?: number | null;
-  // Present in gaseous mode; usually missing in aqueous mode:
-  absorptionGraph?: string; // JSON string
-  fluxGraph?: string; // JSON string
+  absorptionGraph?: string;
+  fluxGraph?: string;
 };
 
 interface AEGLButtonsProps {
   aeglAnalysis?: AeglRow[];
-  // Tell the component which mode we are in
   mode?: "gaseous" | "aqueous";
-  // Optional: pass top-level 4 quick plots to use as a fallback for aqueous
   overviewGraphs?: Record<string, string> | null;
 }
 
@@ -35,7 +32,6 @@ const AEGLButtons = ({
 
   const isEmpty = !aeglAnalysis || aeglAnalysis.length === 0;
 
-  // Per-row graphs exist? (typical for gaseous)
   const hasRowGraphs = useMemo(
     () =>
       !!aeglAnalysis?.some(
@@ -46,7 +42,6 @@ const AEGLButtons = ({
     [aeglAnalysis]
   );
 
-  // Aqueous fallback: use top-level 4 quick plots if present
   const hasOverviewGraphs =
     !!overviewGraphs &&
     (overviewGraphs.vaporAbsorption ||
@@ -54,7 +49,6 @@ const AEGLButtons = ({
       overviewGraphs.vaporFlux ||
       overviewGraphs.liquidFlux);
 
-  // Only show the Graphs button if we have either per-row graphs (gaseous) OR overview graphs (aqueous fallback)
   const canShowGraphs =
     hasRowGraphs || (mode === "aqueous" && hasOverviewGraphs);
 
@@ -129,9 +123,7 @@ const AEGLButtons = ({
     );
   };
 
-  // GRAPH MODAL CONTENT
   const renderGraphContent = () => {
-    // 1) Preferred: per-row graphs (gaseous)
     if (hasRowGraphs) {
       const filtered = aeglAnalysis!.filter((row) =>
         timeFilters.includes(row.timeStr)
@@ -187,7 +179,6 @@ const AEGLButtons = ({
       );
     }
 
-    // 2) Aqueous fallback: show the 4 overview plots in the modal
     if (mode === "aqueous" && hasOverviewGraphs) {
       const keys = [
         "vaporAbsorption",
@@ -237,7 +228,6 @@ const AEGLButtons = ({
       );
     }
 
-    // 3) Nothing to show
     return (
       <div
         style={{
