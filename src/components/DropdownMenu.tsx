@@ -5,6 +5,79 @@ import AEGLButtons from "./AEGLButtons.tsx";
 import KrPredictionCard from "./KrPrediction.tsx";
 import Plot from "react-plotly.js";
 
+type Mode = "gaseous" | "aqueous";
+
+type AeglFigureSet = {
+  vaporAbsorption?: string;
+  liquidAbsorption?: string;
+  vaporFlux?: string;
+  liquidFlux?: string;
+};
+
+type AeglGridGrouped = {
+  groups: Record<string, AeglFigureSet>;
+  sortedKeys: string[];
+};
+
+/** Safely parse a Plotly JSON string coming from the backend. */
+function parsePlotlyJSON(raw: unknown): { data: any[]; layout: any } | null {
+  if (raw == null) return null;
+  try {
+    const s = typeof raw === "string" ? raw : String(raw);
+    const obj = JSON.parse(s);
+    if (obj && Array.isArray(obj.data) && obj.layout) {
+      return { data: obj.data, layout: obj.layout };
+    }
+  } catch (e) {
+    console.error("Failed to parse Plotly JSON:", e, raw);
+  }
+  return null;
+}
+
+function groupAeglGrid(
+  grid: Record<string, unknown> | undefined | null
+): AeglGridGrouped {
+  const groups: Record<string, AeglFigureSet> = {};
+  const FIG_KEYS = [
+    "vaporAbsorption",
+    "liquidAbsorption",
+    "vaporFlux",
+    "liquidFlux",
+  ] as const;
+
+  if (grid && typeof grid === "object") {
+    Object.entries(grid).forEach(([k, v]) => {
+      // Expect keys like "AEGL1_8hr_vaporAbsorption"
+      const lastUnderscore = k.lastIndexOf("_");
+      if (lastUnderscore <= 0) return;
+      const prefix = k.slice(0, lastUnderscore); // "AEGL1_8hr"
+      const figName = k.slice(lastUnderscore + 1); // "vaporAbsorption"
+      if (!FIG_KEYS.includes(figName as any)) return;
+
+      if (!groups[prefix]) groups[prefix] = {};
+      (groups[prefix] as any)[figName] = typeof v === "string" ? v : String(v);
+    });
+  }
+
+  // stable sort: Tier asc, then duration order
+  const orderDur: Record<string, number> = {
+    "8hr": 0,
+    "4hr": 1,
+    "60min": 2,
+    "30min": 3,
+    "10min": 4,
+  };
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    const [, aTier, aDur] = a.match(/^AEGL(\d)_(.+)$/) || [, "9", "zz"];
+    const [, bTier, bDur] = b.match(/^AEGL(\d)_(.+)$/) || [, "9", "zz"];
+    const tcmp = Number(aTier) - Number(bTier);
+    if (tcmp !== 0) return tcmp;
+    return (orderDur[aDur] ?? 99) - (orderDur[bDur] ?? 99);
+  });
+
+  return { groups, sortedKeys };
+}
+
 function DropdownMenu() {
   const [compoundNames, setCompoundNames] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -14,7 +87,7 @@ function DropdownMenu() {
   const [highlighted, setHighlighted] = useState<number>(-1);
   const listRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [mode, setMode] = useState<"gaseous" | "aqueous">("gaseous");
+  const [mode, setMode] = useState<Mode>("gaseous");
 
   useEffect(() => {
     fetch("http://localhost:5000/api/compoundNames")
@@ -53,16 +126,19 @@ function DropdownMenu() {
 
       const data = await response.json();
 
-      if (!response.ok || data?.error) {
+      if (
+        !response.ok ||
+        (data && typeof data === "object" && "error" in data)
+      ) {
         console.error(
           "Analyze error:",
-          data?.error || `HTTP ${response.status}`
+          (data as any)?.error || `HTTP ${response.status}`
         );
-        alert(data?.error || "Failed to analyze compound.");
+        alert((data as any)?.error || "Failed to analyze compound.");
         return;
       }
 
-      if (!data.compound) {
+      if (!data || !data.compound) {
         alert("No compound details returned from server.");
         return;
       }
@@ -120,6 +196,27 @@ function DropdownMenu() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  // Build grouped AEGL sections when in aqueous mode (typed)
+  const grouped: AeglGridGrouped | null = useMemo(() => {
+    if (mode !== "aqueous" || !analysisResult?.aeglGraphGrid) return null;
+    return groupAeglGrid(
+      analysisResult.aeglGraphGrid as Record<string, unknown>
+    );
+  }, [mode, analysisResult?.aeglGraphGrid]);
+
+  const [activeAegl, setActiveAegl] = useState<string | null>(null);
+
+  // whenever a new grouped grid arrives, pick the first target by default
+  useEffect(() => {
+    if (grouped && grouped.sortedKeys.length > 0) {
+      setActiveAegl((prev) =>
+        prev && grouped.groups[prev] ? prev : grouped.sortedKeys[0]
+      );
+    } else {
+      setActiveAegl(null);
+    }
+  }, [grouped]);
+
   return (
     <div>
       <div
@@ -136,7 +233,7 @@ function DropdownMenu() {
           Select Mode:
           <select
             value={mode}
-            onChange={(e) => setMode(e.target.value as "gaseous" | "aqueous")}
+            onChange={(e) => setMode(e.target.value as Mode)}
             style={{
               marginLeft: 8,
               padding: "6px 12px",
@@ -293,37 +390,163 @@ function DropdownMenu() {
 
           {/* AEGL Visualization */}
           <div style={{ marginTop: "1.5rem" }}>
-            {mode === "aqueous" && analysisResult.aeglGraphs ? (
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1.5rem",
-                  flexWrap: "wrap",
-                  justifyContent: "center",
-                }}
-              >
-                {[
-                  "vaporAbsorption",
-                  "liquidAbsorption",
-                  "vaporFlux",
-                  "liquidFlux",
-                ].map(
-                  (key) =>
-                    analysisResult.aeglGraphs[key] && (
-                      <div
-                        key={key}
-                        style={{ flex: "1 1 450px", minWidth: 300 }}
-                      >
-                        <Plot
-                          data={JSON.parse(analysisResult.aeglGraphs[key]).data}
-                          layout={
-                            JSON.parse(analysisResult.aeglGraphs[key]).layout
+            {mode === "aqueous" ? (
+              <>
+                {/* Full AEGL grid (all targets available) — compact chip selector */}
+                {grouped && grouped.sortedKeys.length > 0 ? (
+                  <div style={{ display: "grid", gap: "0.75rem" }}>
+                    {/* Chip row */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "8px",
+                        alignItems: "center",
+                      }}
+                    >
+                      {grouped.sortedKeys.map((k: string) => {
+                        const isActive = activeAegl === k;
+                        return (
+                          <button
+                            key={k}
+                            onClick={() => setActiveAegl(k)}
+                            style={{
+                              padding: "6px 9px",
+                              borderRadius: 9999,
+                              border: "1px solid #e5e7eb",
+                              background: isActive ? "#111827" : "#ffffff",
+                              color: isActive ? "#ffffff" : "#111827",
+                              fontSize: 14,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              lineHeight: 1.3,
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+                            }}
+                          >
+                            {k}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Active target panel */}
+                    {/* Active target panel */}
+                    {activeAegl
+                      ? (() => {
+                          const g = grouped.groups[activeAegl!];
+                          const vA = parsePlotlyJSON(g?.vaporAbsorption);
+                          const lA = parsePlotlyJSON(g?.liquidAbsorption);
+                          const vF = parsePlotlyJSON(g?.vaporFlux);
+                          const lF = parsePlotlyJSON(g?.liquidFlux);
+
+                          if (!vA && !lA && !vF && !lF) {
+                            return (
+                              <div
+                                style={{
+                                  padding: "10px 16px",
+                                  borderRadius: 9999,
+                                  border: "1px solid #e5e7eb",
+                                  background: "#111827",
+                                  color: "#ffffff",
+                                  fontSize: 14,
+                                  fontWeight: 700,
+                                  lineHeight: 1.2,
+                                  boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
+                                }}
+                              >
+                                No plots available for{" "}
+                                <strong>{activeAegl}</strong>.
+                              </div>
+                            );
                           }
-                        />
-                      </div>
-                    )
+
+                          // Compact layout with legend BELOW the chart (not clipped)
+                          const withLegendBelow = (lay: any) => ({
+                            ...lay,
+                            autosize: true,
+                            // add extra bottom margin to fit legend fully
+                            margin: { t: 30, r: 20, b: 72, l: 48 },
+                            legend: {
+                              orientation: "h",
+                              x: 0.5,
+                              xanchor: "center",
+                              y: -0.15, // below plotting area
+                              yanchor: "top",
+                              font: { size: 12 },
+                              bgcolor: "rgba(255,255,255,0.75)",
+                            },
+                            title: {
+                              ...(typeof lay?.title === "object"
+                                ? lay.title
+                                : { text: lay?.title }),
+                              font: { size: 13 },
+                            },
+                          });
+
+                          const Cell: React.FC<{ fig: any | null }> = ({
+                            fig,
+                          }) =>
+                            fig ? (
+                              <div
+                                style={{
+                                  width: "100%",
+                                  height: 380,
+                                  minWidth: 0,
+                                }}
+                              >
+                                <Plot
+                                  data={fig.data}
+                                  layout={withLegendBelow(fig.layout)}
+                                  useResizeHandler
+                                  style={{ width: "100%", height: "100%" }}
+                                  config={{
+                                    displayModeBar: false,
+                                    responsive: true,
+                                  }}
+                                />
+                              </div>
+                            ) : null;
+
+                          return (
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                  "repeat(2, minmax(0, 1fr))",
+                                gridAutoRows: "380px", // match cell height
+                                gap: "0.75rem",
+                                paddingTop: "0.5rem",
+                                alignItems: "stretch",
+                                justifyItems: "stretch",
+                              }}
+                            >
+                              <Cell fig={vA} />
+                              <Cell fig={lA} />
+                              <Cell fig={vF} />
+                              <Cell fig={lF} />
+                            </div>
+                          );
+                        })()
+                      : null}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      padding: "0.75rem 1rem",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 8,
+                      background: "#fff",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                      color: "#374151",
+                      fontSize: 14,
+                    }}
+                  >
+                    <strong>No aqueous AEGL plots to display.</strong>{" "}
+                    {analysisResult?.aeglAnalysis?.reason ||
+                      "No valid AEGL targets found for this compound."}
+                  </div>
                 )}
-              </div>
+              </>
             ) : analysisResult.aeglAnalysis?.available ? (
               <AEGLButtons aeglAnalysis={analysisResult.aeglAnalysis.results} />
             ) : (

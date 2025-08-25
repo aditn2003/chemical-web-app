@@ -7,7 +7,7 @@ from data_loader import compound_db, compoundList
 from analysis_core import analyze_reactivity, predict_kr, analyzeAllAegls, makeJsonSafe, generateCombinedSummaryCsv, analyzeSingleAegl
 from flask_cors import CORS
 import traceback
-from aqueous_code import run as run_aqueous_model
+from aqueous_code import run_all_aegl
 import plotly.io as pio
 
 
@@ -44,7 +44,6 @@ def getCompoundAnalysis(name):
         "aeglAnalysis": aeglAnalysis
     })
 
-
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
     try:
@@ -52,37 +51,69 @@ def analyze():
         if not data or "name" not in data:
             return jsonify({"error": "Missing compound name"}), 400
 
-        name = data["name"]
-        mode = data.get("mode", "gaseous").lower()
+        name = str(data["name"]).strip()
+        mode = str(data.get("mode", "gaseous")).lower()
 
-        # Gaseous mode = default behavior
+        # ---- Default path (unchanged): gaseous analysis
         if mode == "gaseous":
             result = getCompoundAnalysis(name)
             return jsonify(result)
 
-        # Aqueous mode = use alternative AEGL dermal analysis
+        # ---- Aqueous path: compute *all* AEGL targets, return all figures
         elif mode == "aqueous":
             try:
-                output = run_aqueous_model(name)
+                # 1) Run the new all-targets function
+                #    Returns a flat dict like:
+                #    "AEGL1_8hr_vaporAbsorption": "<plotly-json>", etc.
+                all_figs = run_all_aegl(name=name)
+
+                # 2) Start from the standard analysis payload
                 result = getCompoundAnalysis(name)
 
-        # add the 4 overview graphs from aqueous_code.py
-                result["aeglGraphs"] = {
-            "vaporAbsorption": output.get("vaporAbsorption"),
-            "liquidAbsorption": output.get("liquidAbsorption"),
-            "vaporFlux": output.get("vaporFlux"),
-            "liquidFlux": output.get("liquidFlux"),
-                }
+                # 3) Attach the full grid for your frontend (60+ plots if available)
+                result["aeglGraphGrid"] = all_figs
 
-        # 👇 DO NOT overwrite the entire aeglAnalysis object.
-        # If it exists, just tag the source; otherwise, create a minimal one.
+                # 4) Build a 4-figure "overview" by auto-picking the first available AEGL target
+                #    Order preference: Tier 1..3, then 8hr, 4hr, 60min, 30min, 10min
+                duration_order = ["8hr", "4hr", "60min", "30min", "10min"]
+                overview = {"vaporAbsorption": None,
+                            "liquidAbsorption": None,
+                            "vaporFlux": None,
+                            "liquidFlux": None}
+
+                # Find the first (tier, duration) combo present in all_figs
+                chosen_key_prefix = None
+                for tier in (1, 2, 3):
+                    for dur in duration_order:
+                        prefix = f"AEGL{tier}_{dur}_"
+                        has_all_four = all(
+                            f"{prefix}{k}" in all_figs
+                            for k in overview.keys()
+                        )
+                        if has_all_four:
+                            chosen_key_prefix = prefix
+                            break
+                    if chosen_key_prefix:
+                        break
+
+                if chosen_key_prefix:
+                    overview = {
+                        "vaporAbsorption": all_figs[f"{chosen_key_prefix}vaporAbsorption"],
+                        "liquidAbsorption": all_figs[f"{chosen_key_prefix}liquidAbsorption"],
+                        "vaporFlux":       all_figs[f"{chosen_key_prefix}vaporFlux"],
+                        "liquidFlux":      all_figs[f"{chosen_key_prefix}liquidFlux"],
+                    }
+                # Attach the overview (may contain None if nothing was found)
+                result["aeglGraphs"] = overview
+
+                # 5) Tag the analysis source without clobbering existing structure
                 if isinstance(result.get("aeglAnalysis"), dict):
                     result["aeglAnalysis"]["source"] = "aqueous_model"
+                    result["aeglAnalysis"]["available"] = True
                 else:
                     result["aeglAnalysis"] = {"available": True, "source": "aqueous_model"}
 
                 return jsonify(result)
-
 
             except Exception as e:
                 return jsonify({"error": f"Aqueous model error: {str(e)}"}), 500
@@ -92,7 +123,6 @@ def analyze():
 
     except Exception as e:
         return jsonify({"error": f"Internal error: {str(e)}"}), 500
-
 
 
 @app.route("/api/compoundNames", methods=["GET"])
