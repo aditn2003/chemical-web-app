@@ -1,0 +1,5 @@
+name,class,mw,logp,reactivegroups,leavinggroup,steric,basescore,predicted_kr,mo,d,chi,ksk,ttrans
+soman,Nerve agent,182.17,1.78,Organophosphorus,F,Medium,1.0,0.0709790434169296,2.34,0.000000000166,0.05,0.000333,300
+nitric oxide,Lung injurant,31.01,0.74,,Other,Low,0.001,1e-06,3,0.0000000002,0.1,0.0004,300
+
+
