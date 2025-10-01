@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import CompoundInfo from "./CompoundInfo.tsx";
-import ReactivityInfo from "./ReactivityInfo";
+import ReactivityInfo from "./ReactivityInfo.tsx";
 import AEGLButtons from "./AEGLButtons.tsx";
 import KrPredictionCard from "./KrPrediction.tsx";
 import Plot from "react-plotly.js";
